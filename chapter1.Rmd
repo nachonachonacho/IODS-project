@@ -10,3 +10,5 @@ date()
 ```
 
 The text continues here.
+So far, so good! 
+I feel more comfortable around the R ecosystem and I think that there is so much to learn. The setup has been super easy going and easy to follow, with Kimmo being extra helpful to any little issue that would come up along the way.
