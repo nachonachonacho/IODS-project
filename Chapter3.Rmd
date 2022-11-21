@@ -1,0 +1,154 @@
+---
+title: "Chapter 3: Regression"
+output: html_document
+date: "2022-11-18"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+For this exercise, I will be studying the relationship of different variables with alcohol consumption. For that, I will identify the four target variables to act as predictors and visualize the fit of different regression models.
+
+In the first step, all the relevant libraries are added into R, and I did a preliminary check of the dataset's content and dimensions.
+
+
+```{r}
+library(tidyverse)
+library(tidyr)
+library(dplyr)
+library(ggplot2)
+alc <- read.csv("C:/Users/innac/Desktop/alc.csv")
+alc
+summary(alc)
+dim(alc)
+
+```
+Now, I will select 4 variables of interest that will act as the påredcitors of my model, and explore their distributions.
+
+The chosen variables are:
+- famrel
+- absences
+- failure
+- sex
+
+
+Hypothesis: 
+- We can infer that alcohol use will be negatively related with the family support experienced, as a more supportive environment should provide a layer of protection against alcohol abuse.
+- On the other end, I would expect for absences and failure to be positively influencing the use of alcohol, with perhaps absences having slightly higher weight on this relationship.
+- For sex, it should be reasonable to admit a higher prevalence of high alcohol use from male students compared to their female counterparts.
+
+```{r pressure, echo=FALSE}
+#Lets get the summaries of each variable to observe their distribution
+
+alc %>% group_by(famrel) %>% summarise(count = n())
+
+alc %>% group_by(absences) %>% summarise(count = n())
+
+alc %>% group_by(failures) %>% summarise(count = n())
+
+alc %>% group_by(sex) %>% summarise(count = n())
+
+# We can also introduce some graphs for a better visualization
+
+famrelPlot <- ggplot(alc, aes(x = high_use, y = famrel, fill = sex))
+famrelPlot + geom_boxplot()
+
+absencesPlot <- ggplot(alc, aes(x = high_use, y = absences, fill = sex))
+absencesPlot + geom_boxplot()
+
+failuresPlot <- ggplot(alc, aes(x = high_use, y = failures, fill = sex))
+failuresPlot  + geom_boxplot()
+
+
+genderplot <- ggplot(alc, aes(x = sex, y = high_use))
+genderplot + geom_boxplot()
+
+
+#Bar plots help us see the distribution of High alcohol users among the rest of variables
+famrelbarPlot <- ggplot(alc, aes(x = famrel, fill = high_use))
+famrelbarPlot + geom_bar()
+
+absencesbarPlot <- ggplot(alc, aes(x = absences, fill = high_use))
+absencesbarPlot + geom_bar()
+
+```
+By looking at the charts we can deduce that our hypothesis are at least on the right track, as the data shows a higher prevalence for high alcohol use as family relation quality reduces; and also as failures and absences increase. Lastly, we also see promising data regarding our gender hypothesis.
+
+
+```{r}
+mainmodel <- glm(high_use ~ famrel + failures + absences + sex, data = alc, family = "binomial")
+summary(mainmodel)
+coef(mainmodel)
+
+```
+Upon looking at the coefficients of the model, I can reject the null hypothesis, as all the selected variables have a statistically significant impact on high alcohol use. 
+
+More specifically, we observe how the increments in Family Relation is negatively linked to high use of alcohol, as we expected (z = -2.28, p < 0.05).
+
+Regarding Failures, the coefficient shows a direct positive relation with alcohol abuse (z = 2.79, p < 0.05)
+
+Absences also reflect a direct positive link to our target variable, with a specifically significant relation (z = 3.93, p < 0.001)
+
+Lastly, the variable with the mopst impact in our model was gender, as being male significantly increased the relationship with high alcohol use (z = 4.18, z < 0.001)
+
+
+
+The next step is transforming these coefficients into Odds Ratios, and providing their respectives confident intervals (CI)
+
+```{r}
+#Lets get the Odds Ratio and CI as executed on Exercise 3
+
+OR <- coef(mainmodel) %>% exp
+confint(mainmodel) %>% exp
+CI <- confint(mainmodel) %>% exp
+
+
+
+cbind(OR, CI)
+```
+
+The odds ratio provide another source of confirmation of our initial hypothesis, as for example:
+
+- Famrel OR: 0.74; meaning that the probability of falling into High Use decreases as the quality of the family relations increase.
+
+- Failures OR: 1.77; this showcases that the probability of High Alcohol use increases directly as Failures increase.
+
+- Absences OR: 1.09; in a similar way to failures, absences also influence the probability of High Alcohol Use directly, although at a slower rate.
+
+- SexM OR: 2.85; unsurprisingly, gender also had the most significant impact on the odds of developing a High Alcohol Use, compared to the rest of variables selected.
+
+
+
+
+```{r}
+
+# We follow the same steps as in Exercise 3 to create the prediction table.
+probabilities <- predict(mainmodel, type = "response")
+
+alc <- mutate(alc, probability = probabilities)
+
+alc <- mutate(alc, prediction = if_else(probability > 0.5, TRUE, FALSE))
+
+
+select(alc, failures, famrel, absences, sex, high_use, probability, prediction) %>% tail(10)
+
+# Provide a 2x2 cross tabulation of predictions versus the actual values and optionally display a graphic visualizing both the actual values and the predictions.
+table(high_use = alc$high_use, prediction = alc$prediction)
+
+
+mainmodelplot <- ggplot(alc, aes(y = probability, x = high_use))
+
+# define the geom as points and draw the plot
+mainmodelplot + geom_point() + aes(col = prediction)
+
+# tabulate the target variable versus the predictions
+table(high_use = alc$high_use, prediction = alc$prediction) %>% prop.table() %>% addmargins()
+```
+Looking at the 2x2 table we can infer that although most of the subjects predicted as non High-users are correctly placed, the model falsely predicts almost one third of the subjects as High-Use when they are not. Still, I would consider this as a more accurate predictor than simple guessing.
+
+
+Overall, this chapter has resulted slightly more intuitive and easy to follow for me, and the practical applications of it are much more clear for me now. The last bonus exercises might have been still off reach but I am looking forward to learn how to incorporate it during the next lesson.
+
+
+
