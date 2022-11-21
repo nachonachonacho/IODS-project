@@ -148,7 +148,7 @@ table(high_use = alc$high_use, prediction = alc$prediction) %>% prop.table() %>%
 Looking at the 2x2 table we can infer that although most of the subjects predicted as non High-users are correctly placed, the model falsely predicts almost one third of the subjects as High-Use when they are not. Still, I would consider this as a more accurate predictor than simple guessing.
 
 
-Overall, this chapter has resulted slightly more intuitive and easy to follow for me, and the practical applications of it are much more clear for me now. The last bonus exercises might have been still off reach but I am looking forward to learn how to incorporate it during the next lesson.
+Overall, this chapter has resulted slightly more intuitive and easy to follow for me, and the practical applications of it are much more clear for me now. The last bonus exercises might have been still off reach but I am looking forward to learn how to incorporate it during the next lesson!
 
 
 
