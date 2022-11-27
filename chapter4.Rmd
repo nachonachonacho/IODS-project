@@ -1,0 +1,172 @@
+---
+title: "chapter4"
+output: html_document
+date: "2022-11-25"
+---
+
+```{r}
+install.packages(c("MASS", "corrplot"))
+
+library(MASS)
+data("Boston")
+
+#Checking dimensions and summary of the dataset
+str(Boston)
+dim(Boston)
+summary(Boston)
+
+#Showing the plot matrix for the dataset variables
+pairs(Boston)
+ 
+#Loading relevant libraries
+library(tidyr)
+library(corrplot)
+
+#Building a Correlation Matrix 
+cor_matrix <- cor(Boston) 
+cor_matrix
+
+corrplot(cor_matrix, method="circle")
+```
+The data included for this chapter collects different metrics to assess Housing Value in Suburban Boston. It has 506 rows and 14 columns, with most of the variables having numeric values.
+
+In the variable summary and correlation matrix we can also observe the distribution a bit more in depth, as well as how interrelated are those variables regarding each other. For instance, we notice a strong correlation between the "tax" and "rad" variables (r = 0.91)
+
+
+```{r}
+
+#Scaling the dataset and printing its summary
+boston_scaled <- scale(Boston)
+ 
+
+summary(boston_scaled)
+
+
+class(boston_scaled)
+
+# change the object to data frame ##### plus re-writing it as a dataframe
+boston_scaled <- as.data.frame(boston_scaled)
+```
+Scaling and stardardizing the dataset provides with a new summary of the variables, in which every mean has transformed into 0.
+
+```{r}
+
+#Creating a new categorical value for crime
+summary(boston_scaled$crim)
+
+quantile_breaks <- quantile(boston_scaled$crim)
+quantile_breaks
+
+crime <- cut(boston_scaled$crim, breaks = quantile_breaks, include.lowest = TRUE)
+
+#Visualizing the new variable
+
+table(crime)
+
+#Removing the old "crim" variable from the data frame
+boston_scaled <- dplyr::select(boston_scaled, -crim)
+
+#Simmilarly, adding the newly created "crime" variable
+
+boston_scaled <- data.frame(boston_scaled, crime)
+
+#Lastly, adding labels to the new levels of the categorical variable
+#boston_scaled$crime <- factor(boston_scaled$crime, levels = c("low", "med_low", "med_high", "high"))
+```
+
+For this part, we have created a new categorical variable from a continuous one, "crim", by separating its obervation by the quantile in which they are placed. Then, we have swapped the newly created categorical variable "crime" for its old counterpart.
+
+In the next section, we will create the two separate sets for training and testing our model.
+```{r}
+totalrows <- nrow(boston_scaled)
+totalrows
+
+ind <- sample(totalrows,  size = totalrows * 0.8)
+
+
+
+# The training dataset will include the selected sample of rows
+training <- boston_scaled[ind,]
+
+# And the test set will include the remaining rows
+testing <- boston_scaled[-ind,]
+
+
+
+```
+
+As seen, we have included the "ind" sample of variables into our training set, and the excluded rows will belong to the testing set. This will create two separate frames, where the training model will (wait for it) train our model, and the testing set will help us make predictions about the data.
+
+We will begin now assembling our model:
+
+```{r}
+
+lda.fit <- lda(crime ~ ., data = training)
+lda.fit 
+
+#using the arrows function
+lda.arrows <- function(x, myscale = 1, arrow_heads = 0.1, color = "red", tex = 0.75, choices = c(1,2)){
+  heads <- coef(x)
+  arrows(x0 = 0, y0 = 0, 
+         x1 = myscale * heads[,choices[1]], 
+         y1 = myscale * heads[,choices[2]], col=color, length = arrow_heads)
+  text(myscale * heads[,choices], labels = row.names(heads), 
+       cex = tex, col=color, pos=3)
+}
+
+
+classes <- as.numeric(training$crime)
+
+plot(lda.fit, dimen = 2, col = classes, pch = classes)
+lda.arrows(lda.fit, myscale = 1)
+```
+
+```{r}
+correct_classes <- testing$crime
+
+# remove the crime variable from test data, CREATING A NEW OBJECT (test)
+test <- dplyr::select(testing, -crime)
+
+
+lda.prediction <- predict(lda.fit, newdata = test)
+table(correct = correct_classes, predicted = lda.prediction$class)
+
+
+```
+
+From the previous step, we can observe how our predictions look against the actual data. We see that most of the predictions are accurate, with the most variance being found in the  middle categories. Our model works best with more "extreme" values, where the misplacements of prediction are minimal.
+
+
+
+
+```{r}
+boston_scaled <- scale(Boston)
+# euclidean distance matrix
+dist_eu <- dist(boston_scaled)
+
+# look at the summary of the distances
+
+summary(dist_eu)
+
+
+# k-means clustering
+km <- kmeans(Boston, centers = 3)
+
+# plot the Boston dataset with clusters
+pairs(Boston[6:10], col = km$cluster)
+
+#Visualizing the clusters distribution
+km.clusters <- km$cluster
+table(km.clusters, crime)
+
+
+```
+
+On this last step, we can see how the different variables affect the clusters. For instance, the groups seem much more differentiated for the tax variable.
+
+
+
+
+
+
+
