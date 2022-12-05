@@ -154,7 +154,7 @@ tea <- read.csv("https://raw.githubusercontent.com/KimmoVehkalahti/Helsinki-Open
 
 str(tea)
 dim(tea)
-view(tea)
+
 
 
 keep_columns <- c("Tea", "tea.time", "how", "sugar", "where", "lunch")
@@ -165,9 +165,17 @@ str(tea_time)
 
 library(ggplot2)
 pivot_longer(tea, cols = c("Tea", "tea.time", "how", "sugar", "where", "lunch")) %>% 
-  ggplot(aes(value)) + facet_wrap("name", scales = "free") + theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8))
-geom_bar()
+  ggplot(aes(value)) + facet_wrap("name", scales = "free") + theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8)) + geom_bar()
 
 
 
+library(FactoMineR)
+mca <- MCA(tea_time, graph = FALSE)
+summary(mca)
+
+plot(mca, invisible=c("ind"), graph.type = "classic",  habillage = "quali")
+
+
+#The MCA graph provides a great insight of how the different variables interact with the different underlying component dimensions.
+#In the case of my sample of variables, tea.time and lunch seem to have reduced impact on the dimensions
 
