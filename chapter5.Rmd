@@ -1,117 +1,19 @@
+---
+title: "chapter5"
+output: html_document
+date: "2022-12-01"
+---
 
-hd <- read.csv("https://raw.githubusercontent.com/KimmoVehkalahti/Helsinki-Open-Data-Science/master/datasets/human_development.csv")
-gii <- read.csv("https://raw.githubusercontent.com/KimmoVehkalahti/Helsinki-Open-Data-Science/master/datasets/gender_inequality.csv", na = "..")
-
-library(dplyr)
-library(tidyverse)
-
-
-str(hd)
-dim(hd)
-summary(hd)
-
-str(gii)
-dim(gii)
-summary(gii)
-
-
-hd.renamed <- hd %>%
-  rename(HDI = Human.Development.Index..HDI.
-         , LEBirth = Life.Expectancy.at.Birth
-         , EYEd = Expected.Years.of.Education
-         , MeYEd = Mean.Years.of.Education
-         , GNIpc = Gross.National.Income..GNI..per.Capita
-         , GNIminusHDIR = GNI.per.Capita.Rank.Minus.HDI.Rank)
-
-colnames(hd.renamed)
-
-
-gii.renamed <- gii %>%
-  rename(GII = Gender.Inequality.Index..GII.
-         , MMR = Maternal.Mortality.Ratio
-         , Ado.Birth = Adolescent.Birth.Rate
-         , Parli.F = Percent.Representation.in.Parliament
-         , Edu2.F = Population.with.Secondary.Education..Female.
-         , Edu2.M = Population.with.Secondary.Education..Male.
-         , Labo.F = Labour.Force.Participation.Rate..Female.
-         , Labo.M = Labour.Force.Participation.Rate..Male.)
-
-colnames(gii.renamed)
-
-gii.renamed.with.ratios <- gii.renamed %>%
-  mutate(Edu2.Ratio = Edu2.F/Edu2.M,
-         Labo.Ratio = Labo.F/Labo.M)
-
-colnames(gii.renamed.with.ratios)
-
-
-human <- inner_join(hd.renamed, gii.renamed.with.ratios)
-
-
-dim(human)
-write.csv(human)
-save(human,file = "human.Rdata")
-
-
-
-
-
-
-
-
-
-#ASSIGNMENT 5: DATA WRANGLING
-
-
-str(human)
-dim(human)
-
-#The data contains 195 observations over 19 different variables.
-
-library(stringr)
-
-str(human$GNIpc)
-
-
-library(dplyr)
-
-#Selecting our columns of interest and creating the reuslting data frame.
-
-keep <- c("Country", "Edu2.Ratio", "Labo.Ratio", "LEBirth", "EYEd", "GNIpc", "MMR", "Ado.Birth", "Parli.F")
-
-
-human <- select(human, one_of(keep))
-
-include <- complete.cases(human)
-
-
-data.frame(human[-1], comp = include)
-
-human_ <- filter(human, include)
-
-rownames(human_) <- human_$Country
-
-human_ <- select(human_, -1)
-
-
-#removing the regions and keeping only country data
-
-tail(human_, n = 10)
-last <- nrow(human_) - 7
-
-human_ <- human_[1:last, ]
-
-#Checking on the new data dimensions and structure
+```{r}
 human_
-human_$GNIpc <- gsub(",", "", human_$GNIpc) %>% as.numeric
-str(human_)
-
-#The filtered dataframe now has 155 observations across 8 variables.
+dim(human_)
 
 
 #ANALYSIS
+
 library(corrplot)
 library(GGally)
+
 #Show a graphical overview of the data and show summaries of the variables in the data. Describe and interpret the outputs, commenting on the distributions of the variables and the relationships between them.
 
 ggpairs(human_)
@@ -170,4 +72,7 @@ geom_bar()
 
 
 
+
+
+```
 
